@@ -1,6 +1,6 @@
 import discord
-import os.path
 import server
+import json
 
 
 class MyClient(discord.Client):
@@ -30,26 +30,38 @@ class MyClient(discord.Client):
             logMessage = "Current Logs: \n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
 
             # Read from the log file
-            with open(server.directory + "logs/latest.log", "r") as logFile:
+            with open(SevTech.directory + "logs/latest.log", "r") as logFile:
                 for line in (logFile.readlines() [-N:]):
                     logMessage += line
             await message.channel.send(logMessage)
 
 
         async def serverStart():
-            if server.serverStatus():
+
+            with open("launchOptions.json", "r") as file:
+                options = json.load(file)
+
+
+            global SevTech
+
+            SevTech = server.Server(options["SERVER_DIRECTORY"], options["JAVA_LOCATION"], options["JAVA_PARAMETERS"], options["MIN_RAM"], options["MAX_RAM"], options["JAR_FILE"])
+
+            if SevTech.status:
                 await message.channel.send("Server is already running")
                 return
-            server.startServer()
+            SevTech.startServer()
             
         async def input():
-            server.serverInput(message.content)
+            await message.channel.send(SevTech.serverInput(message.content[7:]))
             
-
+        async def list():
+            await message.channel.send(SevTech.serverInput("list"))
 
         async def status():
-            await message.channel.send(f"Server Running - {server.serverStatus()}")
+            await message.channel.send(f"Server Running - {SevTech.status}")
 
+        async def serverClose():
+            SevTech.serverClose()
 
         async def help():
         # Send a mesage with a list of the commands
@@ -67,6 +79,15 @@ Start up the Minecraft Server
 
 - !logs [# of lines from 0 to 50]
 Read the most recent logs of the minecraft server
+
+- !input [Command (Without '/')]
+Input a command into the server
+
+!serverClose
+Close the minecraft server
+
+!list
+Show who is on the server currently
 """)
 
         commands = {
@@ -74,7 +95,9 @@ Read the most recent logs of the minecraft server
             "!serverStart": serverStart,
             "!input": input,
             "!status": status,
-            "!help": help
+            "!help": help,
+            "!serverClose": serverClose,
+            "!list": list,
         }
 
         if userCommand[0] in commands: await commands[userCommand[0]]()
