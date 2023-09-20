@@ -3,9 +3,9 @@ import os.path
 from mcrcon import MCRcon as mc
 
 class Server():
-    def __init__(self, directory, location, LAUNCH_PARAMETERS, MIN_RAM, MAX_RAM, JAR_FILE):
-        self.directory = directory
-        self.javaLocation = location
+    def __init__(self, DIRECTORY, LOCATION, LAUNCH_PARAMETERS, MIN_RAM, MAX_RAM, JAR_FILE):
+        self.directory = DIRECTORY
+        self.javaLocation = LOCATION
         self.status = False
         self.mcronStatus = False
         self.parameters = LAUNCH_PARAMETERS

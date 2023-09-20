@@ -9,6 +9,11 @@ import json
 
 class MyClient(discord.Client):
     async def on_ready(self):
+        with open("launchOptions.json", "r") as file:
+            options = json.load(file)
+        global SevTech
+        SevTech = server.Server(options["SERVER_DIRECTORY"], options["JAVA_LOCATION"], options["JAVA_PARAMETERS"], 
+                                options["MIN_RAM"], options["MAX_RAM"], options["JAR_FILE"])
         print(f'Logged on as {self.user}!')
         print('------------')
 
@@ -43,18 +48,7 @@ class MyClient(discord.Client):
             await message.channel.send("Hello")
 
         async def serverStart():
-
-            with open("launchOptions.json", "r") as file:
-                options = json.load(file)
-
-
-            global SevTech
-
-            SevTech = server.Server(options["SERVER_DIRECTORY"], options["JAVA_LOCATION"], options["JAVA_PARAMETERS"], options["MIN_RAM"], options["MAX_RAM"], options["JAR_FILE"])
-
-
-
-            if SevTech.status:
+            if SevTech.checkStatus:
                 await message.channel.send("Server is already running")
                 return
             SevTech.startServer()
@@ -70,6 +64,30 @@ class MyClient(discord.Client):
 
         async def serverClose():
             SevTech.serverClose()
+
+        async def botLog():
+            # Number of lines read from the bottom ()
+            try:
+                N = int((message.content.strip())[5:])
+            except:
+                await message.channel.send("Unable to determine number of lines; command - !logs [# of lines]\nExample: !logs 5")
+                return
+
+            # Prevent the character limit
+            if (N >= 50 | N < 0):
+                await message.channel.send("Range error: Please select a smaller range")
+                return
+            
+            logMessage = "Current Logs: \n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
+
+            # Read from the log file
+            with open("nohup.out", "r") as logFile:
+                for line in (logFile.readlines() [-N:]):
+                    logMessage += line
+            await message.channel.send(logMessage)
+
+        async def serverForceQuit():
+            pass
 
         async def help():
         # Send a mesage with a list of the commands
@@ -109,7 +127,9 @@ Hello, say it back
             "!help": help,
             "!serverClose": serverClose,
             "!list": list,
-            "!hello": hello
+            "!hello": hello,
+            "!botLog": botLog,
+            "!serverForceQuit": serverForceQuit
         }
 
         if userCommand[0] in commands: await commands[userCommand[0]]()
