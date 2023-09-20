@@ -2,6 +2,10 @@ import discord
 import server
 import json
 
+# Command Ideas
+# !botLog
+# !serverForceQuit - kill using the PID
+#
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -35,6 +39,8 @@ class MyClient(discord.Client):
                     logMessage += line
             await message.channel.send(logMessage)
 
+        async def hello():
+            await message.channel.send("Hello")
 
         async def serverStart():
 
@@ -45,6 +51,8 @@ class MyClient(discord.Client):
             global SevTech
 
             SevTech = server.Server(options["SERVER_DIRECTORY"], options["JAVA_LOCATION"], options["JAVA_PARAMETERS"], options["MIN_RAM"], options["MAX_RAM"], options["JAR_FILE"])
+
+
 
             if SevTech.status:
                 await message.channel.send("Server is already running")
@@ -83,11 +91,14 @@ Read the most recent logs of the minecraft server
 - !input [Command (Without '/')]
 Input a command into the server
 
-!serverClose
+- !serverClose
 Close the minecraft server
 
-!list
+- !list
 Show who is on the server currently
+
+- !hello
+Hello, say it back
 """)
 
         commands = {
@@ -98,6 +109,7 @@ Show who is on the server currently
             "!help": help,
             "!serverClose": serverClose,
             "!list": list,
+            "!hello": hello
         }
 
         if userCommand[0] in commands: await commands[userCommand[0]]()

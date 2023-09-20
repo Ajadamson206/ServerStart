@@ -19,6 +19,7 @@ class Server():
         os.chdir(self.directory)
         launch = f"{self.javaLocation} -server -Xms{self.minRam} -Xmx{self.maxRam} {self.parameters} -jar {self.jarFile} nogui java"
         self.server = subprocess.Popen(launch.rsplit(" "))
+        self.PID = self.server.pid
 
         self.status = True
         with open("serverPID.txt", "w") as file:
@@ -40,5 +41,16 @@ class Server():
             self.mcronStatus = True
         self.mcr.command("/close")
         self.mcr.disconnect()
-        self.server.send_signal(1)
         self.status = False
+
+    def checkStatus(self):
+        if not self.status: # if it is false
+            try:
+                return os.path.exists(f"/proc/{self.PID}")
+            except:
+                return False
+
+        if self.status and os.path.exists(f"/proc/{self.PID}"):
+            return True
+            
+
