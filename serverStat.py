@@ -2,11 +2,6 @@ import discord
 import server
 import json
 
-# Command Ideas
-# !botLog
-# !serverForceQuit - kill using the PID
-#
-
 class MyClient(discord.Client):
     async def on_ready(self):
         with open("launchOptions.json", "r") as file:
@@ -21,7 +16,7 @@ class MyClient(discord.Client):
         if message.author == self.user:
             return
 
-        userCommand = message.content.split(" ")
+        userCommand = message.content.split(" ")[0]
 
         async def logs():
             # Number of lines read from the bottom ()
@@ -51,6 +46,7 @@ class MyClient(discord.Client):
             if SevTech.checkStatus:
                 await message.channel.send("Server is already running")
                 return
+            await message.channel.send("Starting server...")
             SevTech.startServer()
             
         async def input():
@@ -64,6 +60,7 @@ class MyClient(discord.Client):
 
         async def serverClose():
             SevTech.serverClose()
+            await message.channel.send("Closing server")
 
         async def botLog():
             # Number of lines read from the bottom ()
@@ -87,7 +84,7 @@ class MyClient(discord.Client):
             await message.channel.send(logMessage)
 
         async def serverForceQuit():
-            pass
+            SevTech.forceClose()
 
         async def help():
         # Send a mesage with a list of the commands
@@ -117,6 +114,12 @@ Show who is on the server currently
 
 - !hello
 Hello, say it back
+
+- !botLog [# of lines from 0 to 50]
+Read the output log from the discord bot. If running a server, the server logs will also be connected
+
+- !serverForceQuit
+Forcefully terminate the server (If not responding) Not recommended, use only in an emergency
 """)
 
         commands = {
@@ -132,7 +135,7 @@ Hello, say it back
             "!serverForceQuit": serverForceQuit
         }
 
-        if userCommand[0] in commands: await commands[userCommand[0]]()
+        if userCommand in commands: await commands[userCommand]()
         
 
 

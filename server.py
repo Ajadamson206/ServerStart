@@ -2,6 +2,20 @@ import subprocess
 import os.path
 from mcrcon import MCRcon as mc
 
+def enableRCON(directory):
+        with open(f"{directory}server.properties", "r") as properties:
+            with open(f"{directory}tmpServer.properties", "w") as tmp_properties:
+                for line in properties:
+                    if line.startswith("enable-rcon="):
+                        line.replace("false", "true")
+                        tmp_properties.write(line)
+                    else:
+                        tmp_properties.write(line)
+                     
+        os.remove(f"{directory}server.properties")
+        os.rename(f"{directory}tmpServer.properties", f"{directory}server.properties")
+        
+
 class Server():
     def __init__(self, DIRECTORY, LOCATION, LAUNCH_PARAMETERS, MIN_RAM, MAX_RAM, JAR_FILE):
         self.directory = DIRECTORY
@@ -24,12 +38,16 @@ class Server():
         self.status = True
         with open("serverPID.txt", "w") as file:
             file.write(str(self.server.pid))
-
+            
     def serverInput(self, command):
         if not self.mcronStatus:
-            self.mcr = mc('localhost', 'abc')
+            with open(f"{self.directory}server.properties", "r") as properties:
+                for line in properties:
+                    if line.startswith("rcon.password="): rconpassword = line[14:]
+            self.mcr = mc('localhost', rconpassword)
             self.mcr.connect()
             self.mcronStatus = True
+
         resp = self.mcr.command(f"/{command}")
         return resp
 
@@ -52,5 +70,13 @@ class Server():
 
         if self.status and os.path.exists(f"/proc/{self.PID}"):
             return True
+        
+    def forceClose(self):
+        try:
+            self.server.kill()
+        except:
+            with open("serverPID.txt", "w") as file:
+                PID = file.read()
+            subprocess.run(["kill", PID])
             
 
